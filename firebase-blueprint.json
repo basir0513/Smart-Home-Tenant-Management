@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "Tenant": {
+      "title": "Tenant",
+      "description": "A person renting a room in the property.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Full name of the tenant" },
+        "roomNo": { "type": "string", "description": "Room identifier" },
+        "flatId": { "type": "string", "description": "Reference to Flat document ID" },
+        "nid": { "type": "string", "description": "National ID number" },
+        "monthlyRent": { "type": "number", "description": "Base monthly rent" },
+        "contactInfo": { "type": "string", "description": "Phone or email" },
+        "status": { "type": "string", "enum": ["Active", "Vacant", "Archived"] },
+        "joiningDate": { "type": "string", "format": "date", "description": "ISO date string" },
+        "ownerId": { "type": "string", "description": "UID of the landlord" }
+      },
+      "required": ["name", "roomNo", "monthlyRent", "status", "ownerId"]
+    },
+    "Flat": {
+      "title": "Flat",
+      "description": "A property unit available for rent.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Flat name" },
+        "roomNo": { "type": "string", "description": "Room/Unit number" },
+        "rent": { "type": "number", "description": "Expected monthly rent" },
+        "status": { "type": "string", "enum": ["Available", "Occupied", "Maintenance"] },
+        "ownerId": { "type": "string", "description": "UID of the landlord" }
+      },
+      "required": ["name", "roomNo", "rent", "status", "ownerId"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "A rent or utility payment record.",
+      "type": "object",
+      "properties": {
+        "tenantId": { "type": "string", "description": "Reference to Tenant document ID" },
+        "billingMonth": { "type": "string", "description": "e.g., '2026-03'" },
+        "totalDue": { "type": "number", "description": "Total amount due for the month" },
+        "amountPaid": { "type": "number", "description": "Amount paid by tenant" },
+        "balance": { "type": "number", "description": "Remaining balance" },
+        "method": { "type": "string", "enum": ["Cash", "Bank", "Bkash", "Nagad", "Rocket"] },
+        "status": { "type": "string", "enum": ["Paid", "Pending", "Overdue"] },
+        "dueDate": { "type": "string", "format": "date" },
+        "ownerId": { "type": "string", "description": "UID of the landlord" }
+      },
+      "required": ["tenantId", "billingMonth", "totalDue", "amountPaid", "balance", "status", "ownerId"]
+    },
+    "UtilityReading": {
+      "title": "Utility Reading",
+      "description": "Electricity reading for a tenant.",
+      "type": "object",
+      "properties": {
+        "tenantId": { "type": "string" },
+        "month": { "type": "string" },
+        "previousReading": { "type": "number" },
+        "currentReading": { "type": "number" },
+        "totalUnits": { "type": "number" },
+        "ratePerUnit": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["tenantId", "month", "previousReading", "currentReading", "totalUnits", "ratePerUnit", "totalAmount", "ownerId"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile and role information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "Collection of user profiles"
+    },
+    "/tenants/{tenantId}": {
+      "schema": "Tenant",
+      "description": "Collection of tenants"
+    },
+    "/flats/{flatId}": {
+      "schema": "Flat",
+      "description": "Collection of property units"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Collection of payment records"
+    },
+    "/utilityReadings/{readingId}": {
+      "schema": "UtilityReading",
+      "description": "Collection of utility readings"
+    }
+  }
+}

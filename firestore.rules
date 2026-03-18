@@ -1,0 +1,155 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: tenants
+    // Fields: name (string), roomNo (string), nid (string), monthlyRent (number), contactInfo (string), status (string), joiningDate (string), ownerId (string)
+    //
+    // Collection: flats
+    // Fields: name (string), roomNo (string), rent (number), status (string), ownerId (string)
+    //
+    // Collection: payments
+    // Fields: tenantId (string), billingMonth (string), totalDue (number), amountPaid (number), balance (number), method (string), status (string), dueDate (string), ownerId (string)
+    //
+    // Collection: utilityReadings
+    // Fields: tenantId (string), month (string), previousReading (number), currentReading (number), totalUnits (number), ratePerUnit (number), totalAmount (number), ownerId (string)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.ownerId;
+    }
+
+    function requestMatchesOwner() {
+      return isAuthenticated() && request.auth.uid == request.resource.data.ownerId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "basirudden644@gmail.com" ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isApproved() {
+      return isAuthenticated() && (
+        request.auth.token.email == "basirudden644@gmail.com" ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'approved')
+      );
+    }
+
+    // Validators
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'status', 'createdAt']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.email is string &&
+             data.role in ['admin', 'user'] &&
+             data.status in ['pending', 'approved', 'rejected'] &&
+             data.createdAt is string;
+    }
+
+    function isValidTenant(data) {
+      return data.keys().hasAll(['name', 'roomNo', 'monthlyRent', 'status', 'ownerId']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.roomNo is string && data.roomNo.size() > 0 && data.roomNo.size() < 20 &&
+             (!('flatId' in data) || (data.flatId == null || data.flatId is string)) &&
+             (!('nid' in data) || (data.nid is string && data.nid.size() < 30)) &&
+             data.monthlyRent is number && data.monthlyRent >= 0 &&
+             data.status in ['Active', 'Vacant', 'Archived'] &&
+             data.ownerId is string;
+    }
+
+    function isValidFlat(data) {
+      return data.keys().hasAll(['name', 'roomNo', 'rent', 'status', 'ownerId']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.roomNo is string && data.roomNo.size() > 0 && data.roomNo.size() < 20 &&
+             data.rent is number && data.rent >= 0 &&
+             data.status in ['Available', 'Occupied', 'Maintenance'] &&
+             data.ownerId is string;
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll(['tenantId', 'billingMonth', 'totalDue', 'amountPaid', 'balance', 'status', 'ownerId']) &&
+             data.tenantId is string &&
+             data.billingMonth is string &&
+             data.totalDue is number &&
+             data.amountPaid is number &&
+             data.balance is number &&
+             data.status in ['Paid', 'Pending', 'Overdue'] &&
+             data.ownerId is string;
+    }
+
+    function isValidUtilityReading(data) {
+      return data.keys().hasAll(['tenantId', 'month', 'previousReading', 'currentReading', 'totalUnits', 'ratePerUnit', 'totalAmount', 'ownerId']) &&
+             data.tenantId is string &&
+             data.month is string &&
+             data.previousReading is number &&
+             data.currentReading is number &&
+             data.totalUnits is number &&
+             data.ratePerUnit is number &&
+             data.totalAmount is number &&
+             data.ownerId is string;
+    }
+
+    match /users/{uid} {
+      allow read: if isAuthenticated() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == uid && 
+                      (
+                        (request.resource.data.role == 'user' && request.resource.data.status == 'pending') ||
+                        (request.auth.token.email == "basirudden644@gmail.com" && 
+                         request.resource.data.role == 'admin' && 
+                         request.resource.data.status == 'approved')
+                      ) &&
+                      isValidUser(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /tenants/{tenantId} {
+      allow read: if isApproved() && (isDocOwner() || isAdmin());
+      allow create: if isApproved() && requestMatchesOwner() && isValidTenant(request.resource.data);
+      allow update: if isApproved() && isDocOwner() && requestMatchesOwner() && isValidTenant(request.resource.data);
+      allow delete: if isApproved() && (isDocOwner() || isAdmin());
+    }
+
+    match /flats/{flatId} {
+      allow read: if isApproved() && (isDocOwner() || isAdmin());
+      allow create: if isApproved() && requestMatchesOwner() && isValidFlat(request.resource.data);
+      allow update: if isApproved() && isDocOwner() && requestMatchesOwner() && isValidFlat(request.resource.data);
+      allow delete: if isApproved() && (isDocOwner() || isAdmin());
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isApproved() && (isDocOwner() || isAdmin());
+      allow create: if isApproved() && requestMatchesOwner() && isValidPayment(request.resource.data);
+      allow update: if isApproved() && isDocOwner() && requestMatchesOwner() && isValidPayment(request.resource.data);
+      allow delete: if isApproved() && (isDocOwner() || isAdmin());
+    }
+
+    match /utilityReadings/{readingId} {
+      allow read: if isApproved() && (isDocOwner() || isAdmin());
+      allow create: if isApproved() && requestMatchesOwner() && isValidUtilityReading(request.resource.data);
+      allow update: if isApproved() && isDocOwner() && requestMatchesOwner() && isValidUtilityReading(request.resource.data);
+      allow delete: if isApproved() && (isDocOwner() || isAdmin());
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}
