@@ -73,7 +73,7 @@ export function Auth() {
         <div className="text-center mb-8">
           <img 
             src="/api/attachments/input_file_0.png" 
-            alt="Smart Home Logo" 
+            alt="Smart Property Management System Logo" 
             className="w-48 h-auto mx-auto mb-8"
             referrerPolicy="no-referrer"
           />

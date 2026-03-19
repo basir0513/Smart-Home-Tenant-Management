@@ -169,7 +169,7 @@ export function Dashboard({ userDoc }: { userDoc: UserDoc | null }) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
-            {userDoc?.homeName ? 'Dashboard Overview' : 'Smart Home Dashboard'}
+            {userDoc?.homeName ? 'Dashboard Overview' : 'Property Dashboard'}
           </h1>
           <p className="text-slate-400 mt-1">Tenant Management & Property Overview</p>
         </div>
@@ -254,7 +254,7 @@ export function Dashboard({ userDoc }: { userDoc: UserDoc | null }) {
           </div>
         </div>
 
-        {/* Middle Column: Financial Stats & Smart Homes Status */}
+        {/* Middle Column: Financial Stats & Property Status */}
         <div className="lg:col-span-6 space-y-6">
           {/* Financial Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -296,9 +296,9 @@ export function Dashboard({ userDoc }: { userDoc: UserDoc | null }) {
             </div>
           </div>
 
-          {/* Smart Homes Status (Moved Down) */}
+          {/* Property Status (Moved Down) */}
           <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-3xl border border-slate-700/50">
-            <h3 className="text-slate-400 text-sm font-medium mb-6 uppercase tracking-wider">Smart Homes Status</h3>
+            <h3 className="text-slate-400 text-sm font-medium mb-6 uppercase tracking-wider">Property Status</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">

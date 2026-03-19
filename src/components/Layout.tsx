@@ -35,7 +35,7 @@ export function Layout({ user, userDoc, currentView, onViewChange, onLogout, chi
         <div className="flex items-center gap-3 mb-10">
           <img 
             src="/api/attachments/input_file_0.png" 
-            alt="Smart Home Logo" 
+            alt="Smart Property Management System Logo" 
             className="w-full h-auto"
             referrerPolicy="no-referrer"
           />
@@ -95,7 +95,7 @@ export function Layout({ user, userDoc, currentView, onViewChange, onLogout, chi
         <div className="flex items-center gap-2">
           <img 
             src="/api/attachments/input_file_0.png" 
-            alt="Smart Home Logo" 
+            alt="Smart Property Management System Logo" 
             className="h-8 w-auto"
             referrerPolicy="no-referrer"
           />
