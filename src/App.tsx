@@ -66,6 +66,7 @@ export default function App() {
                 email: user.email!,
                 role: 'admin',
                 status: 'approved',
+                homeName: 'Smart Home',
                 createdAt: new Date().toISOString()
               });
             } else {
@@ -82,6 +83,7 @@ export default function App() {
               email: user.email!,
               role: 'admin',
               status: 'approved',
+              homeName: 'Smart Home',
               createdAt: new Date().toISOString()
             });
           }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Home, ArrowRight, Building2 } from 'lucide-react';
 
@@ -17,9 +17,9 @@ export function HomeSetup({ uid }: HomeSetupProps) {
     
     setLoading(true);
     try {
-      await updateDoc(doc(db, 'users', uid), {
+      await setDoc(doc(db, 'users', uid), {
         homeName: homeName.trim()
-      });
+      }, { merge: true });
     } catch (error) {
       console.error("Error setting home name:", error);
     } finally {
